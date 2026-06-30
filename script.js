@@ -363,7 +363,8 @@ Règles :
 
         if (decision.actions && decision.actions.length > 0) {
             brain.actionQueue = decision.actions;
-            brain.recentActions.push(decision.thought || 'action');
+            const actSummary = decision.actions.map(a => a.type === 'place' ? `place(${a.furniture})` : a.type).join(',');
+            brain.recentActions.push(`${decision.thought || 'action'} [${actSummary}]`);
             if (brain.recentActions.length > 10) brain.recentActions.shift();
         } else {
             brain.actionQueue = [{ type: 'wait', seconds: 2 }];
@@ -416,17 +417,17 @@ function generateFallbackActions() {
 // ═══════════════════════════════════════════════════════════════
 
 function startAction(char, brain, action) {
-    switch (action.type) {
+    switch ((action.type || '').toLowerCase()) {
         case 'move': {
-            const tiles = Math.min(Math.max(action.tiles || 1, 1), 6);
-            const dir   = action.direction || 'down';
-            char.dir = dir;
+            const tiles = Math.min(Math.max(parseInt(action.tiles) || 1, 1), 6);
+            const dir   = (action.direction || 'down').toLowerCase();
+            char.dir = ['up','haut'].includes(dir) ? 'up' : ['left','gauche'].includes(dir) ? 'left' : ['right','droite'].includes(dir) ? 'right' : 'down';
 
             let targetX = char.x, targetY = char.y;
-            if (dir === 'up') targetY -= tiles * TILE_SIZE;
-            if (dir === 'down') targetY += tiles * TILE_SIZE;
-            if (dir === 'left') targetX -= tiles * TILE_SIZE;
-            if (dir === 'right') targetX += tiles * TILE_SIZE;
+            if (['up', 'haut'].includes(dir)) targetY -= tiles * TILE_SIZE;
+            if (['down', 'bas'].includes(dir)) targetY += tiles * TILE_SIZE;
+            if (['left', 'gauche'].includes(dir)) targetX -= tiles * TILE_SIZE;
+            if (['right', 'droite'].includes(dir)) targetX += tiles * TILE_SIZE;
 
             targetX = Math.max(0, Math.min(targetX, (Game.gridCols - 1) * TILE_SIZE));
             targetY = Math.max(0, Math.min(targetY, (Game.gridRows - 1) * TILE_SIZE));
@@ -451,8 +452,9 @@ function startAction(char, brain, action) {
             break;
         }
         case 'turn': {
-            const dir = action.direction || 'down';
-            if (['up', 'down', 'left', 'right'].includes(dir)) char.dir = dir;
+            const dir = (action.direction || 'down').toLowerCase();
+            const normalizedDir = ['up','haut'].includes(dir) ? 'up' : ['left','gauche'].includes(dir) ? 'left' : ['right','droite'].includes(dir) ? 'right' : 'down';
+            char.dir = normalizedDir;
             brain.currentAction = null;
             break;
         }
@@ -855,7 +857,7 @@ async function callAI(prompt) {
     if (prov === 'gemini') {
         const res = await fetch(API_ENDPOINTS.gemini(model, key), {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.9 } })
         });
         if (!res.ok) throw new Error(`Gemini Erreur ${res.status}`);
         const data = await res.json();
@@ -863,7 +865,7 @@ async function callAI(prompt) {
     } else {
         const res = await fetch(API_ENDPOINTS.mistral(), {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-            body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }] })
+            body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.9 })
         });
         if (!res.ok) throw new Error(`Mistral Erreur ${res.status}`);
         const data = await res.json();
