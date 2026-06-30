@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TADC — Un jeu sandbox 2D en Pixel Art où un personnage autonome piloté par IA explore, décore et vit sa vie.">
+    <title>TADC — The AI-Driven Character</title>
+    
+    <!-- Support iOS / Add to Home Screen -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TADC">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ÉCRAN TITRE / CONFIGURATION API                        -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="title-screen" class="overlay visible">
+        <div class="title-card">
+            <h1 class="title-logo">
+                <span class="title-pixel">⬛</span> TADC
+            </h1>
+            <p class="title-subtitle">The AI-Driven Character</p>
+
+            <div class="config-section">
+                <label for="api-provider">Fournisseur IA</label>
+                <select id="api-provider">
+                    <option value="gemini">Google Gemini</option>
+                    <option value="mistral">Mistral AI</option>
+                </select>
+
+                <label for="api-model">Modèle</label>
+                <select id="api-model">
+                    <!-- Rempli dynamiquement -->
+                </select>
+
+                <label for="api-key-input">Clé API</label>
+                <div class="input-row">
+                    <input type="password" id="api-key-input" placeholder="Collez votre clé API ici…" autocomplete="off">
+                    <button id="toggle-key-visibility" class="btn-icon" title="Afficher/Masquer">👁</button>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btn-save-key" class="btn btn-primary">💾 Sauvegarder la clé</button>
+                    <button id="btn-start-game" class="btn btn-accent" disabled>🎮 Lancer le jeu</button>
+                </div>
+
+                <p id="config-status" class="status-msg"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- INTERFACE DE JEU                                       -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="game-container" class="hidden">
+
+        <!-- Canvas principal -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- HUD en haut -->
+        <div id="hud-top">
+            <span id="hud-coords">Pos: (0, 0)</span>
+            <span id="hud-ai-status">🧠 IA: En attente</span>
+            <span id="hud-mode">Mode: Observation</span>
+        </div>
+
+        <!-- Panneau latéral (Toolbar) -->
+        <div id="sidebar">
+            <h2 class="sidebar-title">🧠 TADC</h2>
+            <p class="sidebar-desc">Le personnage est contrôlé par l'IA. Observez-le vivre !</p>
+
+            <button id="btn-generate-character" class="btn btn-ai">
+                <span class="btn-icon-left">🤖</span> Générer le Personnage
+            </button>
+
+            <button id="btn-generate-furniture" class="btn btn-ai">
+                <span class="btn-icon-left">🪑</span> Générer Meuble IA
+            </button>
+
+            <hr class="sidebar-divider">
+
+            <!-- Contrôles IA -->
+            <h3 class="sidebar-subtitle">Contrôle IA</h3>
+            <div class="ai-controls">
+                <button id="btn-ai-pause" class="btn btn-muted btn-sm" disabled>⏸ Pause IA</button>
+                <button id="btn-ai-nudge" class="btn btn-muted btn-sm" disabled>💬 Relancer l'IA</button>
+            </div>
+
+            <div id="ai-thought-box" class="thought-box">
+                <div class="thought-box-header">💭 Pensée de l'IA</div>
+                <p id="ai-thought-text" class="thought-text">En attente du personnage…</p>
+            </div>
+
+            <div id="ai-action-box" class="action-box">
+                <div class="action-box-header">⚡ Action en cours</div>
+                <p id="ai-action-text" class="action-text">—</p>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <h3 class="sidebar-subtitle">Meubles disponibles</h3>
+            <div id="furniture-palette" class="palette-grid">
+                <!-- Rempli dynamiquement -->
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <div id="furniture-ai-list">
+                <h3 class="sidebar-subtitle">Meubles IA générés</h3>
+                <div id="ai-furniture-palette" class="palette-grid">
+                    <!-- Rempli dynamiquement -->
+                </div>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <div class="sidebar-controls">
+                <button id="btn-clear-furniture" class="btn btn-danger btn-sm">🗑 Vider les meubles</button>
+                <button id="btn-back-title" class="btn btn-muted btn-sm">⚙ Configuration</button>
+            </div>
+
+            <div class="sidebar-help">
+                <p>👁 <strong>Observation</strong> — L'IA décide de tout : déplacements, meubles, exploration.</p>
+                <p>✨ <strong>Création rare</strong> — L'IA peut parfois invoquer des amis s'il y a assez de place !</p>
+            </div>
+        </div>
+
+        <!-- Indicateur de chargement IA -->
+        <div id="ai-loading" class="overlay hidden">
+            <div class="loading-card">
+                <div class="spinner"></div>
+                <p id="ai-loading-text">L'IA génère votre asset…</p>
+            </div>
+        </div>
+
+        <!-- Notifications toast -->
+        <div id="toast-container"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
